@@ -21,8 +21,11 @@
 #include <sys/time.h>
 
 #include "process.h"
+#include "BS.h"
+#include "BSnode.h"
 
 using namespace std;
+
 
 
 //Function used to print the linked list containing processes
@@ -140,6 +143,14 @@ void GenerateProcesses(list<Process*> &processes, int num_processes){
     }
 }
 
+void my_malloc(){
+    
+}
+
+void my_free(){
+    
+}
+
 void systemManager(list<Process*> processes){
     struct timeval  tv1, tv2;
     //Start time, move this around to skip array creation or loading if desired
@@ -191,6 +202,57 @@ void systemManager(list<Process*> processes){
     
 }
 
+void myManager(list<Process*> processes){
+    struct timeval  tv1, tv2;
+    //Start time, move this around to skip array creation or loading if desired
+    gettimeofday(&tv1, NULL);
+    
+    int time = 0;
+    int next_process = 0;
+    list<Process*> running;
+    
+    while(!processesComplete(processes)){
+        
+        //New process comes
+        if( time % 50 == 0 && next_process < 50 ){
+            std::cout << "Process " << getProcessAtIndex(processes, next_process)->getPID() << " has arrived." << std::endl;
+            //Insert the next process in to the running list
+            running.push_back(getProcessAtIndex(processes, next_process));
+            
+            //Allocate the memory for the new process
+//            running.back()->assignMemPtr( my_malloc(running.back()->getMemory()) );
+            
+            next_process++;
+        }
+        
+        //        std::cout << running.size() << " processes running." << std::endl;
+        
+        //Decriment the remaining time of all processes
+        for( auto p : running ){
+            p->cycle();
+            //Remove finished processes from the "running" list
+            if( p->isFinished() ){
+                std::cout << p->getPID() << " has finished." << std::endl;
+                
+                //Free the memory of the finished process
+//                my_free( p->getMemPtr() );
+            }
+        }
+        
+        running.remove_if([](Process* p){ return p->isFinished(); });
+        
+        time++;
+    }
+    
+    //Stop time
+    gettimeofday(&tv2, NULL);
+    
+    //Calculate elapsed time
+    std::cout << "Total time = " <<((double) (tv2.tv_usec - tv1.tv_usec)) / 1000000 +
+    ((double) (tv2.tv_sec - tv1.tv_sec)) << " seconds " << std::endl;
+    
+}
+
 int main(int argc, const char * argv[]) {
     
     //Container object for initial pool of processes
@@ -199,7 +261,11 @@ int main(int argc, const char * argv[]) {
     //call the function to generate a set of X amount of processes
     GenerateProcesses(processes, 50);
     
-    systemManager(processes);
+//    systemManager(processes);
+    
+    Manager myManager = Manager(10000000);
+    
+    myManager.ShowTree(myManager.getRoot(), 0);
     
     return 0;
 }
