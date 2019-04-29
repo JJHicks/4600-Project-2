@@ -266,6 +266,7 @@ int main(int argc, const char * argv[]) {
     Manager myManager = Manager(10000000);
     
     myManager.ShowTree(myManager.getRoot(), 0);
+    myManager.printList();
     
     return 0;
 }
