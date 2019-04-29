@@ -26,6 +26,8 @@ private:
     int levels;
     int nodeCount;
     
+    void* main_block;
+    
 public:
     
     Manager(int size){
@@ -41,17 +43,43 @@ public:
         
         root = new BSnode(nodeCount++, max_level, NULL);
         
-        for( int i = 0; i < max_level; i++ ){
+        for( int i = 0; i <= max_level; i++ ){
             list.push_back(std::vector<BSnode *>());
         }
         
         std::cout << list.size() << std::endl;
         //Add root to the list
-        list[max_level-1].push_back(root);
-    
+        list[max_level].push_back(root);
+        
+        //Get the initial memory block
+        main_block = malloc(size);
+        if( main_block == NULL ){
+            std::cerr << " Unable to get initial memory.";
+            exit(1);
+        }
     }
     
     BSnode* getRoot(){ return root; }
+    
+    void my_malloc(unsigned long long size, BSnode * node){
+        
+        if( pow( 2, node->getLevel() ) < size ){
+            return;
+        }
+        
+        if( node->getLeft()->getAvailable() ){
+            my_malloc( size, node->getLeft());
+        }
+        
+        if( node->getRight()->getAvailable() ){
+            my_malloc( size, node->getRight() );
+        }
+            
+    }
+    
+    void my_free(){
+        
+    }
     
     BSnode* search(BSnode* node, Process* p){
         if (node == NULL)
@@ -71,6 +99,7 @@ public:
     }
     
     void printList(){
+        std::cout<<"\n\n"<<std::endl;
         for(int i = 0; i < list.size(); i++){
             std::cout << "List[" << i << "] : ";
             for( int j = 0; j < list[i].size(); j++){
@@ -89,7 +118,7 @@ public:
             std::cout<<"Root: ";
             else{
                 for(i = 0;i < l;i++)
-                std::cout<<"      ";}
+                 std::cout<<"      ";}
             
             std::cout << Node->getNodeID() << " : " << Node->getSize() << " : " << Node->getAvailable();
             ShowTree(Node->getLeft(), l+1);
@@ -97,7 +126,7 @@ public:
     }
     
     ~Manager(){
-        
+        free(main_block);
     }
 };
 
