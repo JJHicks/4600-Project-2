@@ -62,11 +62,11 @@ public:
     
     BSnode* getRoot(){ return root; }
     
-    void my_malloc(unsigned long long size, BSnode * node, Process * p){
+    void* my_malloc(unsigned long long size, BSnode * node, Process * p){
         
         //If p has been assigned, stop looking
         if( searchList(p->getPID()) ){
-            return;
+            return NULL;
         }
         
         //If the level below can accomodate the process...
@@ -98,7 +98,7 @@ public:
         } else {
             
             if( !node->getAvailable() )
-                return;
+                return NULL;
             
             //Make segment unavailable. Remove from list?
             node->setAvailable(false);
@@ -106,10 +106,47 @@ public:
             node->setCurrentProcess(p);
             std::cout << "Offset is : " << findOffset(node) << std::endl;
 //            list[node->getLevel()].push_back(node);
-
+        }
+        return NULL;
+    }
+    
+     void my_free(Process* p){
+//        BSnode* node = search(root, p);
+         BSnode* node = searchList(p->getPID());
+        
+        if(node != NULL){
+            node->setAvailable(true);
+            cleanup(node);
+        } else {
+            std::cout << "Process not found in tree." << std::endl;
+        }
+    }
+    
+    void cleanup(BSnode * node){
+//        //Node is root
+//        if(node->getParent() == NULL){
+//            return;
+//        }
+    
+        if( node->getLeft() != NULL && node->getRight() != NULL ){
+            if( node->getLeft()->getAvailable() && node->getRight()->getAvailable() ){
+//                delete node->getLeft();
+//                delete node->getRight();
+                node->setLeft(NULL);
+                node->setRight(NULL);
+                
+                node->setIsSplit(false);
+                node->setAvailable(true);
+            }
         }
         
-
+        if(node->getParent() != NULL){
+            if( node->getParent()->getLeft()->getAvailable() && node->getParent()->getRight()->getAvailable() ){
+                
+                cleanup(node->getParent());
+            }
+        }
+        
     }
     
     unsigned long long findOffset(BSnode * node){
@@ -144,39 +181,30 @@ public:
         return inOrder;
     }
     
-    void my_free(){
-        
+    BSnode * findLargest(){
+        for(int i = (int)list.size(); i >= 0; i--){
+            for( int j = 0; j < list[i].size(); j++){
+                if( list[i][j]->getAvailable() ){
+                    return list[i][j];
+                }
+            }
+        }
+        return NULL;
     }
-    
-    bool searchList(int ID){
+
+    BSnode * searchList(int ID){
         for(int i = 0; i < list.size(); i++){
             for( int j = 0; j < list[i].size(); j++){
                 if(list[i][j]->getCurrentProcess() != NULL){
                     if( list[i][j]->getCurrentProcess()->getPID() == ID ){
-                        return true;
+                        return list[i][j];
                     }
                 }
             }
         }
-        return false;
-    }
-    
-    BSnode* search(BSnode* node, Process* p){
-        if (node == NULL)
-            return NULL;
-        
-        if ( node->getCurrentProcess() == p ){
-            return node;
-        }
-        
-        /* then recur on left subtree */
-        search(node->getLeft(), p);
-        
-        /* now recur on right subtree */
-        search(node->getRight(), p);
-        
         return NULL;
     }
+    
     
     void printList(){
         std::cout<<"\n\n"<<std::endl;

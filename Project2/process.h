@@ -76,9 +76,9 @@ public:
             this->finished = true;
     }
     
-    bool isFinished(){
-        return this->finished;
-    }
+    bool isFinished(){ return this->finished; }
+    void setFinished(bool f){ finished = f; }
+    void resetCyclesRemaining(){ cycles_remaining = num_cycles; };
     
     //Destructor
     ~Process(){}

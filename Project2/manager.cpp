@@ -115,6 +115,13 @@ bool processesComplete(list<Process*> processes){
     return true;
 }
 
+void resetProcesses(list<Process*> processes){
+    for( auto p : processes ){
+        p->setFinished(false);
+        p->resetCyclesRemaining();
+    }
+}
+
 //funciton that generates processes, to the amount specified in main()
 void GenerateProcesses(list<Process*> &processes, int num_processes){
     
@@ -126,8 +133,8 @@ void GenerateProcesses(list<Process*> &processes, int num_processes){
     uniform_int_distribution<long long unsigned> cycle_distribution(100000,5000000);
 //    uniform_int_distribution<long long unsigned> cycle_distribution(10, 15);
     
-    //distribution from .25MB to 8GB ( 1,000 bytes to 200,000 bytes )
-    uniform_int_distribution<long long unsigned> memory_distribution(1000,200000);
+    //distribution from ( 1,000 bytes to 160,000 bytes )
+    uniform_int_distribution<long long unsigned> memory_distribution(1000,160000);
     unsigned long long num_cycles, mem_footprint;
     
     //For the numbers of processes to be created
@@ -141,14 +148,6 @@ void GenerateProcesses(list<Process*> &processes, int num_processes){
         Process* next_process = new Process(i, num_cycles, mem_footprint);
         processes.push_back(next_process);
     }
-}
-
-void my_malloc(){
-    
-}
-
-void my_free(){
-    
 }
 
 void systemManager(list<Process*> processes){
@@ -211,6 +210,8 @@ void myManager(list<Process*> processes){
     int next_process = 0;
     list<Process*> running;
     
+    Manager myManager = Manager(10000000);
+    
     while(!processesComplete(processes)){
         
         //New process comes
@@ -220,7 +221,7 @@ void myManager(list<Process*> processes){
             running.push_back(getProcessAtIndex(processes, next_process));
             
             //Allocate the memory for the new process
-//            running.back()->assignMemPtr( my_malloc(running.back()->getMemory()) );
+            running.back()->assignMemPtr( myManager.my_malloc(running.back()->getMemory(), myManager.getRoot(), running.back()) );
             
             next_process++;
         }
@@ -233,15 +234,17 @@ void myManager(list<Process*> processes){
             //Remove finished processes from the "running" list
             if( p->isFinished() ){
                 std::cout << p->getPID() << " has finished." << std::endl;
-                
+//                myManager.ShowTree(myManager.getRoot(), 0);
                 //Free the memory of the finished process
-//                my_free( p->getMemPtr() );
+                myManager.my_free( p );
             }
         }
         
         running.remove_if([](Process* p){ return p->isFinished(); });
         
         time++;
+
+        
     }
     
     //Stop time
@@ -251,6 +254,8 @@ void myManager(list<Process*> processes){
     std::cout << "Total time = " <<((double) (tv2.tv_usec - tv1.tv_usec)) / 1000000 +
     ((double) (tv2.tv_sec - tv1.tv_sec)) << " seconds " << std::endl;
     
+    myManager.ShowTree(myManager.getRoot(), 0);
+    myManager.printList();
 }
 
 int main(int argc, const char * argv[]) {
@@ -263,39 +268,49 @@ int main(int argc, const char * argv[]) {
     
 //    systemManager(processes);
     
-    Manager myManager = Manager(10000000);
+    resetProcesses(processes);
     
-    myManager.ShowTree(myManager.getRoot(), 0);
-    myManager.printList();
+    myManager(processes);
     
-    Process* sample_process1 = new Process(52, 50, pow( 2, 20 ));
-    myManager.my_malloc(sample_process1->getMemory(), myManager.getRoot(), sample_process1);
+//    Manager myManager = Manager(10000000);
+//
+//    myManager.ShowTree(myManager.getRoot(), 0);
+//    myManager.printList();
+//
+//    Process* sample_process1 = new Process(52, 50, pow( 2, 20 ));
+//    myManager.my_malloc(sample_process1->getMemory(), myManager.getRoot(), sample_process1);
+//
+//    myManager.ShowTree(myManager.getRoot(), 0);
+//    myManager.printList();
+//
+//    Process* sample_process2 = new Process(53, 50, pow( 2, 19 ) + 10000);
+//    myManager.my_malloc(sample_process2->getMemory(), myManager.getRoot(), sample_process2);
+//
+//    myManager.ShowTree(myManager.getRoot(), 0);
+//    myManager.printList();
+//
+//    Process* sample_process3 = new Process(54, 50, pow( 2, 21 ) + 100);
+//    myManager.my_malloc(sample_process3->getMemory(), myManager.getRoot(), sample_process3);
+//
+//    myManager.ShowTree(myManager.getRoot(), 0);
+//    myManager.printList();
+//
+//    Process* sample_process4 = new Process(55, 50, pow( 2, 18 ) );
+//    myManager.my_malloc(sample_process4->getMemory(), myManager.getRoot(), sample_process4);
+//
+//    myManager.ShowTree(myManager.getRoot(), 0);
+//    myManager.printList();
+//
+//    Process* sample_process5 = new Process(56, 50, pow( 2, 22 ) );
+//    myManager.my_malloc(sample_process5->getMemory(), myManager.getRoot(), sample_process5);
+//
+//    myManager.ShowTree(myManager.getRoot(), 0);
+//    myManager.printList();
+//
+//    myManager.my_free(sample_process4);
+//
+//    myManager.ShowTree(myManager.getRoot(), 0);
+//    myManager.printList();
     
-    myManager.ShowTree(myManager.getRoot(), 0);
-    myManager.printList();
-    
-    Process* sample_process2 = new Process(53, 50, pow( 2, 19 ) + 10000);
-    myManager.my_malloc(sample_process2->getMemory(), myManager.getRoot(), sample_process2);
-    
-    myManager.ShowTree(myManager.getRoot(), 0);
-    myManager.printList();
-    
-    Process* sample_process3 = new Process(54, 50, pow( 2, 21 ) + 100);
-    myManager.my_malloc(sample_process3->getMemory(), myManager.getRoot(), sample_process3);
-    
-    myManager.ShowTree(myManager.getRoot(), 0);
-    myManager.printList();
-    
-    Process* sample_process4 = new Process(55, 50, pow( 2, 18 ) );
-    myManager.my_malloc(sample_process4->getMemory(), myManager.getRoot(), sample_process4);
-    
-    myManager.ShowTree(myManager.getRoot(), 0);
-    myManager.printList();
-    
-    Process* sample_process5 = new Process(56, 50, pow( 2, 22 ) );
-    myManager.my_malloc(sample_process5->getMemory(), myManager.getRoot(), sample_process5);
-    
-    myManager.ShowTree(myManager.getRoot(), 0);
-    myManager.printList();
     return 0;
 }
