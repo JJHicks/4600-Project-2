@@ -71,21 +71,22 @@ public:
             if( node->getLeft() == NULL && node->getRight() == NULL ){
                 
                 node->setAvailable(false);
+                node->setIsSplit(true);
                 node->setLeft(new BSnode(nodeCount++, node->getLevel() - 1, node));
                 node->setRight(new BSnode(nodeCount++, node->getLevel() - 1, node));
-                list[node->getLevel()].pop_back();
+//                list[node->getLevel()].pop_back();
                 list[node->getLevel() - 1].push_back(node->getLeft());
                 list[node->getLevel() - 1].push_back(node->getRight());
 
             }
             
             //If left child is not null, recurse left
-            if( node->getLeft() != NULL && node->getLeft()->getAvailable() ){
+            if( node->getLeft() != NULL && (node->getLeft()->getAvailable() || node->getLeft()->getIsSplit()) ){
                 my_malloc(size, node->getLeft(), p);
             }
             
             //If right child is not null, recurse right
-            else if( node->getRight() != NULL && node->getRight()->getAvailable() ){
+            else if( node->getRight() != NULL && ( node->getLeft()->getAvailable() || node->getRight()->getIsSplit() )){
                 my_malloc(size, node->getRight(), p);
             }
             
@@ -161,7 +162,7 @@ public:
         for(int i = 0; i < list.size(); i++){
             std::cout << "List[" << i << "] : ";
             for( int j = 0; j < list[i].size(); j++){
-                std::cout << list[i][j]->getSize() << "(" << list[i][j]->getAvailable() << ") : ";
+                std::cout << "[" << list[i][j]->getNodeID() << "]" << list[i][j]->getSize() << "(" << list[i][j]->getAvailable() << ") : ";
             }
             std::cout<<std::endl;
         }

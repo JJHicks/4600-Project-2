@@ -18,6 +18,7 @@ private:
         unsigned long long size;
     
         bool available;
+        bool isSplit;
     
         BSnode * left;
         BSnode * right;
@@ -33,6 +34,7 @@ public:
         size = pow( 2, level );
         
         available = true;
+        isSplit = false;
         left = right = NULL;
         parent = p;
         
@@ -45,6 +47,7 @@ public:
     bool getAvailable(){ return available; }
     unsigned long long getSize(){ return size; }
     Process* getCurrentProcess(){ return currentProcess; }
+    bool getIsSplit(){ return isSplit; }
     
     BSnode * getRight(){ return right; }
     BSnode * getLeft(){ return left; }
@@ -55,6 +58,7 @@ public:
     
     void setCurrentProcess(Process* p){ currentProcess = p; }
     void setAvailable(bool a){ available = a; }
+    void setIsSplit(bool s){ isSplit = s; }
     
     ~BSnode(){
         
