@@ -64,12 +64,17 @@ public:
     
     void my_malloc(unsigned long long size, BSnode * node, Process * p){
         
+        //If p has been assigned, stop looking
+        if( searchList(p->getPID()) ){
+            return;
+        }
+        
         //If the level below can accomodate the process...
         if( node->getLevel() > 0 && pow( 2, node->getLevel() - 1 ) >= size ){
-            
-            //If both children are null, the segment must be split
+
+            //If both children are null the segment is whole, and the segment must be split
             if( node->getLeft() == NULL && node->getRight() == NULL ){
-                
+
                 node->setAvailable(false);
                 node->setIsSplit(true);
                 node->setLeft(new BSnode(nodeCount++, node->getLevel() - 1, node));
@@ -79,29 +84,32 @@ public:
                 list[node->getLevel() - 1].push_back(node->getRight());
 
             }
-            
+
             //If left child is not null, recurse left
             if( node->getLeft() != NULL && (node->getLeft()->getAvailable() || node->getLeft()->getIsSplit()) ){
                 my_malloc(size, node->getLeft(), p);
             }
-            
+
             //If right child is not null, recurse right
-            else if( node->getRight() != NULL && ( node->getLeft()->getAvailable() || node->getRight()->getIsSplit() )){
+            if( node->getRight() != NULL && ( node->getRight()->getAvailable() || node->getRight()->getIsSplit() )){
                 my_malloc(size, node->getRight(), p);
             }
-            
+
         } else {
+            
+            if( !node->getAvailable() )
+                return;
+            
             //Make segment unavailable. Remove from list?
             node->setAvailable(false);
 //            list[node->getLevel()].erase(std::remove(list[node->getLevel()].begin(), list[node->getLevel()].end(), node), list[node->getLevel()].end());
             node->setCurrentProcess(p);
             std::cout << "Offset is : " << findOffset(node) << std::endl;
-            list[node->getLevel()].push_back(node);
-            
+//            list[node->getLevel()].push_back(node);
+
         }
         
-        
-            
+
     }
     
     unsigned long long findOffset(BSnode * node){
@@ -140,6 +148,19 @@ public:
         
     }
     
+    bool searchList(int ID){
+        for(int i = 0; i < list.size(); i++){
+            for( int j = 0; j < list[i].size(); j++){
+                if(list[i][j]->getCurrentProcess() != NULL){
+                    if( list[i][j]->getCurrentProcess()->getPID() == ID ){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    
     BSnode* search(BSnode* node, Process* p){
         if (node == NULL)
             return NULL;
@@ -162,7 +183,13 @@ public:
         for(int i = 0; i < list.size(); i++){
             std::cout << "List[" << i << "] : ";
             for( int j = 0; j < list[i].size(); j++){
-                std::cout << "[" << list[i][j]->getNodeID() << "]" << list[i][j]->getSize() << "(" << list[i][j]->getAvailable() << ") : ";
+                std::cout << "[" << list[i][j]->getNodeID() << "]";
+                if(list[i][j]->getCurrentProcess() != NULL){
+                    std::cout << list[i][j]->getCurrentProcess()->getPID();
+                } else {
+                    std::cout << "NONE";
+                }
+                std::cout << "(" << list[i][j]->getAvailable() << "," << list[i][j]->getIsSplit() << ") : ";
             }
             std::cout<<std::endl;
         }
@@ -179,7 +206,13 @@ public:
                 for(i = 0;i < l;i++)
                  std::cout<<"                  ";}
             
-            std::cout << Node->getNodeID() << " : " << Node->getSize() << " : " << Node->getAvailable();
+            std::cout << Node->getNodeID() << ":" << Node->getSize() << "[";
+            if(Node->getCurrentProcess() != NULL){
+                std::cout << Node->getCurrentProcess()->getPID();
+            } else {
+                std::cout << "NONE";
+            }
+            std::cout << "]:(" << Node->getAvailable() << "," << Node->getIsSplit() << ")";
             ShowTree(Node->getLeft(), l+1);
         }
     }
