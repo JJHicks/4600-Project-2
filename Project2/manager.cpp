@@ -268,5 +268,17 @@ int main(int argc, const char * argv[]) {
     myManager.ShowTree(myManager.getRoot(), 0);
     myManager.printList();
     
+    Process* sample_process1 = new Process(52, 50, pow( 2, 20 ));
+    myManager.my_malloc(sample_process1->getMemory(), myManager.getRoot(), sample_process1);
+    
+    myManager.ShowTree(myManager.getRoot(), 0);
+    myManager.printList();
+    
+    Process* sample_process2 = new Process(53, 50, pow( 2, 19 ));
+    myManager.my_malloc(sample_process2->getMemory(), myManager.getRoot(), sample_process2);
+    
+    myManager.ShowTree(myManager.getRoot(), 0);
+    myManager.printList();
+    
     return 0;
 }

@@ -71,11 +71,11 @@ public:
             if( node->getLeft() == NULL && node->getRight() == NULL ){
                 
                 node->setAvailable(false);
+                node->setLeft(new BSnode(nodeCount++, node->getLevel() - 1, node));
+                node->setRight(new BSnode(nodeCount++, node->getLevel() - 1, node));
                 list[node->getLevel()].pop_back();
                 list[node->getLevel() - 1].push_back(node->getLeft());
                 list[node->getLevel() - 1].push_back(node->getRight());
-                node->setLeft(new BSnode(nodeCount++, node->getLevel() - 1, node));
-                node->setRight(new BSnode(nodeCount++, node->getLevel() - 1, node));
 
             }
             
@@ -85,7 +85,7 @@ public:
             }
             
             //If right child is not null, recurse right
-            if( node->getRight() != NULL && node->getRight()->getAvailable() ){
+            else if( node->getRight() != NULL && node->getRight()->getAvailable() ){
                 my_malloc(size, node->getRight(), p);
             }
             
@@ -94,6 +94,8 @@ public:
             node->setAvailable(false);
 //            list[node->getLevel()].erase(std::remove(list[node->getLevel()].begin(), list[node->getLevel()].end(), node), list[node->getLevel()].end());
             node->setCurrentProcess(p);
+            std::cout << "Offset is : " << findOffset(node) << std::endl;
+            list[node->getLevel()].push_back(node);
             
         }
         
@@ -174,7 +176,7 @@ public:
             std::cout<<"Root: ";
             else{
                 for(i = 0;i < l;i++)
-                 std::cout<<"      ";}
+                 std::cout<<"                  ";}
             
             std::cout << Node->getNodeID() << " : " << Node->getSize() << " : " << Node->getAvailable();
             ShowTree(Node->getLeft(), l+1);
