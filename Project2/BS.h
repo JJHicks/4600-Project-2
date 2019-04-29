@@ -12,6 +12,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <algorithm>
 
 #include "process.h"
 #include "BSnode.h"
@@ -61,20 +62,75 @@ public:
     
     BSnode* getRoot(){ return root; }
     
-    void my_malloc(unsigned long long size, BSnode * node){
+    void my_malloc(unsigned long long size, BSnode * node, Process * p){
         
-        if( pow( 2, node->getLevel() ) < size ){
-            return;
-        }
-        
-        if( node->getLeft()->getAvailable() ){
-            my_malloc( size, node->getLeft());
-        }
-        
-        if( node->getRight()->getAvailable() ){
-            my_malloc( size, node->getRight() );
-        }
+        //If the level below can accomodate the process...
+        if( node->getLevel() > 0 && pow( 2, node->getLevel() - 1 ) >= size ){
             
+            //If both children are null, the segment must be split
+            if( node->getLeft() == NULL && node->getRight() == NULL ){
+                
+                node->setAvailable(false);
+                list[node->getLevel()].pop_back();
+                list[node->getLevel() - 1].push_back(node->getLeft());
+                list[node->getLevel() - 1].push_back(node->getRight());
+                node->setLeft(new BSnode(nodeCount++, node->getLevel() - 1, node));
+                node->setRight(new BSnode(nodeCount++, node->getLevel() - 1, node));
+
+            }
+            
+            //If left child is not null, recurse left
+            if( node->getLeft() != NULL && node->getLeft()->getAvailable() ){
+                my_malloc(size, node->getLeft(), p);
+            }
+            
+            //If right child is not null, recurse right
+            if( node->getRight() != NULL && node->getRight()->getAvailable() ){
+                my_malloc(size, node->getRight(), p);
+            }
+            
+        } else {
+            //Make segment unavailable. Remove from list?
+            node->setAvailable(false);
+//            list[node->getLevel()].erase(std::remove(list[node->getLevel()].begin(), list[node->getLevel()].end(), node), list[node->getLevel()].end());
+            node->setCurrentProcess(p);
+            
+        }
+        
+        
+            
+    }
+    
+    unsigned long long findOffset(BSnode * node){
+        unsigned long long sum = 0;
+        std::vector<BSnode*> inOrder;
+        offsetUtil(root, &inOrder);
+        
+        for(int i = 0; i < inOrder.size(); i++){
+            //If the node is a leaf
+            if( inOrder[i]->getLeft() && inOrder[i]->getRight() ){
+                sum += inOrder[i]->getSize();
+            }
+        }
+        return sum;
+    }
+    
+    std::vector<BSnode*>* offsetUtil(struct BSnode* node, std::vector<BSnode*>* inOrder)
+    {
+        if (node == NULL)
+            return NULL;
+
+        
+        /* first recur on left child */
+        offsetUtil(node->getLeft(), inOrder);
+        
+        /* add to vector */
+        inOrder->push_back(node);
+        
+        /* now recur on right child */
+        offsetUtil(node->getRight(), inOrder);
+        
+        return inOrder;
     }
     
     void my_free(){
@@ -103,7 +159,7 @@ public:
         for(int i = 0; i < list.size(); i++){
             std::cout << "List[" << i << "] : ";
             for( int j = 0; j < list[i].size(); j++){
-                std::cout << list[i][j]->getSize() << " : ";
+                std::cout << list[i][j]->getSize() << "(" << list[i][j]->getAvailable() << ") : ";
             }
             std::cout<<std::endl;
         }

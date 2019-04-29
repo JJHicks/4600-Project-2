@@ -37,6 +37,7 @@ public:
         parent = p;
         
         currentProcess = NULL;
+        
     }
     
     int getNodeID(){ return nodeID; }
@@ -53,7 +54,7 @@ public:
     void setLeft(BSnode * l){ left = l; }
     
     void setCurrentProcess(Process* p){ currentProcess = p; }
-    void toggleAvailable(){ available = !available; }
+    void setAvailable(bool a){ available = a; }
     
     ~BSnode(){
         
