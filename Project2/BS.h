@@ -80,6 +80,7 @@ public:
                 node->setLeft(new BSnode(nodeCount++, node->getLevel() - 1, node));
                 node->setRight(new BSnode(nodeCount++, node->getLevel() - 1, node));
 //                list[node->getLevel()].pop_back();
+                list[node->getLevel()].erase(std::remove(list[node->getLevel()].begin(), list[node->getLevel()].end(), node), list[node->getLevel()].end());
                 list[node->getLevel() - 1].push_back(node->getLeft());
                 list[node->getLevel() - 1].push_back(node->getRight());
 
@@ -134,12 +135,13 @@ public:
 //                delete node->getRight();
                 
                 //Remove the nodes children from the list
-                list[node->getLevel()].erase(std::remove(list[node->getLevel()].begin(), list[node->getLevel()].end(), node->getLeft()), list[node->getLevel()].end());
-                list[node->getLevel()].erase(std::remove(list[node->getLevel()].begin(), list[node->getLevel()].end(), node->getRight()), list[node->getLevel()].end());
+//                list[node->getLevel()-1].erase(std::remove(list[node->getLevel()].begin(), list[node->getLevel()].end(), node->getLeft()), list[node->getLevel()].end());
+//                list[node->getLevel()-1].erase(std::remove(list[node->getLevel()].begin(), list[node->getLevel()].end(), node->getRight()), list[node->getLevel()].end());
+                
                 
                 node->setLeft(NULL);
                 node->setRight(NULL);
-                
+//
                 
                 
                 node->setIsSplit(false);
@@ -149,6 +151,10 @@ public:
         
         if(node->getParent() != NULL){
             if( node->getParent()->getLeft()->getAvailable() && node->getParent()->getRight()->getAvailable() ){
+
+                list[node->getLevel()-1].erase(std::remove(list[node->getLevel()].begin(), list[node->getLevel()].end(), node->getLeft()), list[node->getLevel()].end());
+                list[node->getLevel()-1].erase(std::remove(list[node->getLevel()].begin(), list[node->getLevel()].end(), node->getRight()), list[node->getLevel()].end());
+                list[node->getLevel() + 1].push_back(node->getParent());
                 delete node->getLeft();
                 delete node->getRight();
                 cleanup(node->getParent());
