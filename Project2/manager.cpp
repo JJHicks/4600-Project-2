@@ -150,7 +150,7 @@ void GenerateProcesses(list<Process*> &processes, int num_processes){
     }
 }
 
-void systemManager(list<Process*> processes){
+double systemManager(list<Process*> processes){
     struct timeval  tv1, tv2;
     //Start time, move this around to skip array creation or loading if desired
     gettimeofday(&tv1, NULL);
@@ -199,9 +199,10 @@ void systemManager(list<Process*> processes){
     std::cout << "Total time = " <<((double) (tv2.tv_usec - tv1.tv_usec)) / 1000000 +
     ((double) (tv2.tv_sec - tv1.tv_sec)) << " seconds " << std::endl;
     
+    return ((double) (tv2.tv_usec - tv1.tv_usec)) / 1000000 + ((double) (tv2.tv_sec - tv1.tv_sec));
 }
 
-void myManager(list<Process*> processes){
+double myManager(list<Process*> processes){
     struct timeval  tv1, tv2;
     //Start time, move this around to skip array creation or loading if desired
     gettimeofday(&tv1, NULL);
@@ -221,7 +222,7 @@ void myManager(list<Process*> processes){
             running.push_back(getProcessAtIndex(processes, next_process));
             
             //Allocate the memory for the new process
-            running.back()->assignMemPtr( myManager.my_malloc(running.back()->getMemory(), myManager.getRoot(), running.back()) );
+            myManager.my_malloc(running.back());
             
             next_process++;
         }
@@ -256,6 +257,8 @@ void myManager(list<Process*> processes){
     
     myManager.ShowTree(myManager.getRoot(), 0);
     myManager.printList();
+    
+    return ((double) (tv2.tv_usec - tv1.tv_usec)) / 1000000 + ((double) (tv2.tv_sec - tv1.tv_sec));
 }
 
 int main(int argc, const char * argv[]) {
@@ -266,11 +269,13 @@ int main(int argc, const char * argv[]) {
     //call the function to generate a set of X amount of processes
     GenerateProcesses(processes, 50);
     
-//    systemManager(processes);
+    double time1 = systemManager(processes);
     
     resetProcesses(processes);
     
-    myManager(processes);
+    double time2 = myManager(processes);
+    
+    cout << "Time difference : " << time1 - time2 << endl ;
     
 //    Manager myManager = Manager(10000000);
 //

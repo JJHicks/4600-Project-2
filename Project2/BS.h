@@ -13,6 +13,7 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <queue>
 
 #include "process.h"
 #include "BSnode.h"
@@ -26,6 +27,8 @@ private:
     
     int levels;
     int nodeCount;
+    
+    std::queue<Process *> readyQueue;
     
     void* main_block;
     
@@ -62,7 +65,19 @@ public:
     
     BSnode* getRoot(){ return root; }
     
-    void* my_malloc(unsigned long long size, BSnode * node, Process * p){
+    void my_malloc(Process* p){
+        void* memPtr;
+        memPtr = getMem(p->getMemory(), root, p);
+        
+        if(memPtr == NULL){
+            std::cout << "Not enough space for process " << p->getPID() << ". Adding to readyQueue." << std::endl;
+            readyQueue.push(p);
+        } else {
+            p->assignMemPtr(memPtr);
+        }
+    }
+    
+    void* getMem(unsigned long long size, BSnode * node, Process * p){
         
         //If p has been assigned, stop looking
         if( searchList(p->getPID()) ){
@@ -88,12 +103,12 @@ public:
 
             //If left child is not null, recurse left
             if( node->getLeft() != NULL && (node->getLeft()->getAvailable() || node->getLeft()->getIsSplit()) ){
-                my_malloc(size, node->getLeft(), p);
+                getMem(size, node->getLeft(), p);
             }
 
             //If right child is not null, recurse right
             if( node->getRight() != NULL && ( node->getRight()->getAvailable() || node->getRight()->getIsSplit() )){
-                my_malloc(size, node->getRight(), p);
+                getMem(size, node->getRight(), p);
             }
 
         } else {
@@ -105,7 +120,9 @@ public:
             node->setAvailable(false);
 //            list[node->getLevel()].erase(std::remove(list[node->getLevel()].begin(), list[node->getLevel()].end(), node), list[node->getLevel()].end());
             node->setCurrentProcess(p);
-            std::cout << "Offset is : " << findOffset(node) << std::endl;
+            unsigned long long offset = findOffset(node);
+            std::cout << "Offset is : " << offset << std::endl;
+            return ((char*)main_block + offset);
 //            list[node->getLevel()].push_back(node);
         }
         return NULL;
@@ -118,6 +135,12 @@ public:
         if(node != NULL){
             node->setAvailable(true);
             cleanup(node);
+            
+            if( readyQueue.front()->getMemory() <= findLargest()->getSize() ){
+                this->my_malloc( readyQueue.front() );
+                readyQueue.pop();
+            }
+            
         } else {
             std::cout << "Process not found in tree." << std::endl;
         }
@@ -160,9 +183,21 @@ public:
         std::vector<BSnode*> inOrder;
         offsetUtil(root, &inOrder);
         
+//        std::cout << "inOrder: ";
+//        for( auto node : inOrder ){
+//            std::cout << node->getNodeID() << ":" <<node->getSize() << " ";
+//        }
+//        std::cout << std::endl;
+        
         for(int i = 0; i < inOrder.size(); i++){
-            //If the node is a leaf
-            if( inOrder[i]->getLeft() && inOrder[i]->getRight() ){
+            
+            //only do sum until node is reached
+            if( inOrder[i] == node ){
+                break;
+            }
+            
+            //If the node is a leaf, add to sum
+            if( inOrder[i]->getLeft() != NULL && inOrder[i]->getRight() != NULL ){
                 sum += inOrder[i]->getSize();
             }
         }
