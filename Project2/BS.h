@@ -124,26 +124,18 @@ public:
     }
     
     void cleanup(BSnode * node){
-//        //Node is root
-//        if(node->getParent() == NULL){
-//            return;
-//        }
-    
+
         if( node->getLeft() != NULL && node->getRight() != NULL ){
             if( node->getLeft()->getAvailable() && node->getRight()->getAvailable() ){
-//                delete node->getLeft();
-//                delete node->getRight();
                 
                 //Remove the nodes children from the list
-//                list[node->getLevel()-1].erase(std::remove(list[node->getLevel()].begin(), list[node->getLevel()].end(), node->getLeft()), list[node->getLevel()].end());
-//                list[node->getLevel()-1].erase(std::remove(list[node->getLevel()].begin(), list[node->getLevel()].end(), node->getRight()), list[node->getLevel()].end());
-                
+                list[node->getLevel()-1].erase(std::remove(list[node->getLevel()-1].begin(), list[node->getLevel()-1].end(), node->getLeft()), list[node->getLevel()-1].end());
+                list[node->getLevel()-1].erase(std::remove(list[node->getLevel()-1].begin(), list[node->getLevel()-1].end(), node->getRight()), list[node->getLevel()-1].end());
                 
                 node->setLeft(NULL);
                 node->setRight(NULL);
-//
                 
-                
+                //Set as not split and available
                 node->setIsSplit(false);
                 node->setAvailable(true);
             }
@@ -152,11 +144,11 @@ public:
         if(node->getParent() != NULL){
             if( node->getParent()->getLeft()->getAvailable() && node->getParent()->getRight()->getAvailable() ){
 
-                list[node->getLevel()-1].erase(std::remove(list[node->getLevel()].begin(), list[node->getLevel()].end(), node->getLeft()), list[node->getLevel()].end());
-                list[node->getLevel()-1].erase(std::remove(list[node->getLevel()].begin(), list[node->getLevel()].end(), node->getRight()), list[node->getLevel()].end());
+                //Add the parent to the list
                 list[node->getLevel() + 1].push_back(node->getParent());
                 delete node->getLeft();
                 delete node->getRight();
+                
                 cleanup(node->getParent());
             }
         }
