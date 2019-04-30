@@ -132,8 +132,15 @@ public:
             if( node->getLeft()->getAvailable() && node->getRight()->getAvailable() ){
 //                delete node->getLeft();
 //                delete node->getRight();
+                
+                //Remove the nodes children from the list
+                list[node->getLevel()].erase(std::remove(list[node->getLevel()].begin(), list[node->getLevel()].end(), node->getLeft()), list[node->getLevel()].end());
+                list[node->getLevel()].erase(std::remove(list[node->getLevel()].begin(), list[node->getLevel()].end(), node->getRight()), list[node->getLevel()].end());
+                
                 node->setLeft(NULL);
                 node->setRight(NULL);
+                
+                
                 
                 node->setIsSplit(false);
                 node->setAvailable(true);
@@ -142,7 +149,8 @@ public:
         
         if(node->getParent() != NULL){
             if( node->getParent()->getLeft()->getAvailable() && node->getParent()->getRight()->getAvailable() ){
-                
+                delete node->getLeft();
+                delete node->getRight();
                 cleanup(node->getParent());
             }
         }
