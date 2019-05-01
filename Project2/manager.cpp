@@ -130,11 +130,11 @@ void GenerateProcesses(list<Process*> &processes, int num_processes){
     mt19937_64 generator(rd());
     
     //distribution from 10 * 10^4 to 50 * 10^5
-    uniform_int_distribution<long long unsigned> cycle_distribution(10000,500000);
+    uniform_int_distribution<long long unsigned> cycle_distribution(100000,5000000);
 //    uniform_int_distribution<long long unsigned> cycle_distribution(10, 15);
     
     //distribution from ( 1,000 bytes to 160,000 bytes )
-    uniform_int_distribution<long long unsigned> memory_distribution(10000,1600000);
+    uniform_int_distribution<long long unsigned> memory_distribution(1000,160000);
     unsigned long long num_cycles, mem_footprint;
     
     //For the numbers of processes to be created
@@ -169,7 +169,9 @@ double systemManager(list<Process*> processes){
             
             //Allocate the memory for the new process
             running.back()->assignMemPtr( malloc(running.back()->getMemory()) );
-            
+            if(running.back()->getMemPtr() != NULL ){
+                running.back()->setIsRunning(true);
+            }
             next_process++;
         }
         
@@ -275,13 +277,13 @@ int main(int argc, const char * argv[]) {
     //call the function to generate a set of X amount of processes
     GenerateProcesses(processes, 50);
     
-//    double time1 = systemManager(processes);
+    double time1 = systemManager(processes);
     
-//    resetProcesses(processes);
+    resetProcesses(processes);
     
     double time2 = myManager(processes);
     
-//    cout << "Time difference : " << time1 - time2 << endl ;
+    cout << "Time difference : " << time1 - time2 << endl ;
     
 //    Manager myManager = Manager(10000000);
 //
