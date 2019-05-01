@@ -134,7 +134,7 @@ void GenerateProcesses(list<Process*> &processes, int num_processes){
 //    uniform_int_distribution<long long unsigned> cycle_distribution(10, 15);
     
     //distribution from ( 1,000 bytes to 160,000 bytes )
-    uniform_int_distribution<long long unsigned> memory_distribution(1000,160000);
+    uniform_int_distribution<long long unsigned> memory_distribution(1000,16000000000);
     unsigned long long num_cycles, mem_footprint;
     
     //For the numbers of processes to be created
@@ -177,13 +177,15 @@ double systemManager(list<Process*> processes){
         
         //Decriment the remaining time of all processes
         for( auto p : running ){
-            p->cycle();
-            //Remove finished processes from the "running" list
-            if( p->isFinished() ){
-                std::cout << p->getPID() << " has finished." << std::endl;
-
-                //Free the memory of the finished process
-                free( p->getMemPtr() );
+            if( p->getIsRunning() ){
+                p->cycle();
+                //Remove finished processes from the "running" list
+                if( p->isFinished() ){
+                    std::cout << p->getPID() << " has finished." << std::endl;
+                    
+                    //Free the memory of the finished process
+                    free( p->getMemPtr() );
+                }
             }
         }
         
@@ -217,7 +219,7 @@ double myManager(list<Process*> processes){
         
         //New process comes
         if( time % 50 == 0 && next_process < 50 ){
-            std::cout << "Process " << getProcessAtIndex(processes, next_process)->getPID() << " has arrived." << std::endl;
+            std::cout << "Process " << getProcessAtIndex(processes, next_process)->getPID() << " has arrived. " << running.size() << " processes running." << std::endl;
             //Insert the next process in to the running list
             running.push_back(getProcessAtIndex(processes, next_process));
             
@@ -231,14 +233,17 @@ double myManager(list<Process*> processes){
         
         //Decriment the remaining time of all processes
         for( auto p : running ){
-            p->cycle();
-            //Remove finished processes from the "running" list
-            if( p->isFinished() ){
-                std::cout << p->getPID() << " has finished." << std::endl;
-//                myManager.ShowTree(myManager.getRoot(), 0);
-                //Free the memory of the finished process
-                myManager.my_free( p );
+            if( p->getIsRunning() ){
+                p->cycle();
+                //Remove finished processes from the "running" list
+                if( p->isFinished() ){
+                    std::cout << p->getPID() << " has finished. "<< running.size() << " processes running."  << std::endl;
+                    //                myManager.ShowTree(myManager.getRoot(), 0);
+                    //Free the memory of the finished process
+                    myManager.my_free( p );
+                }
             }
+            
         }
         
         running.remove_if([](Process* p){ return p->isFinished(); });
@@ -269,13 +274,13 @@ int main(int argc, const char * argv[]) {
     //call the function to generate a set of X amount of processes
     GenerateProcesses(processes, 50);
     
-    double time1 = systemManager(processes);
+//    double time1 = systemManager(processes);
     
-    resetProcesses(processes);
+//    resetProcesses(processes);
     
     double time2 = myManager(processes);
     
-    cout << "Time difference : " << time1 - time2 << endl ;
+//    cout << "Time difference : " << time1 - time2 << endl ;
     
 //    Manager myManager = Manager(10000000);
 //

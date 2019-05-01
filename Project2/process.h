@@ -23,6 +23,9 @@ private:
     unsigned long long mem_footprint;
     
     unsigned long long cycles_remaining;
+    
+    bool isRunning;
+    
     bool finished;
     
     void* memPtr;
@@ -50,6 +53,7 @@ public:
     unsigned long long getCycles(){ return this->num_cycles; }
     unsigned long long getMemory(){ return this->mem_footprint; }
     unsigned long long getCyclesRemaining(){ return this->cycles_remaining; }
+    bool getIsRunning(){ return isRunning; }
     
     void assignMemPtr(void* p){
         this->memPtr = p;
@@ -79,6 +83,7 @@ public:
     bool isFinished(){ return this->finished; }
     void setFinished(bool f){ finished = f; }
     void resetCyclesRemaining(){ cycles_remaining = num_cycles; };
+    void setIsRunning(bool r){ isRunning = r; }
     
     //Destructor
     ~Process(){}

@@ -51,7 +51,8 @@ public:
             list.push_back(std::vector<BSnode *>());
         }
         
-        std::cout << list.size() << std::endl;
+//        std::cout << list.size() << std::endl;
+        
         //Add root to the list
         list[max_level].push_back(root);
         
@@ -66,22 +67,27 @@ public:
     BSnode* getRoot(){ return root; }
     
     void my_malloc(Process* p){
-        void* memPtr;
-        memPtr = getMem(p->getMemory(), root, p);
+        void* memPtr = NULL;
+        memPtr = getMem(p->getMemory(), root, p, &memPtr);
+        
+        std::cout << "my_malloc memPtr : " << (void*)memPtr << std::endl;
         
         if(memPtr == NULL){
             std::cout << "Not enough space for process " << p->getPID() << ". Adding to readyQueue." << std::endl;
             readyQueue.push(p);
         } else {
             p->assignMemPtr(memPtr);
+            p->setIsRunning(true);
         }
+        ShowTree(root, 0);
+        printList();
     }
     
-    void* getMem(unsigned long long size, BSnode * node, Process * p){
+    void* getMem(unsigned long long size, BSnode * node, Process * p, void* memptr){
         
         //If p has been assigned, stop looking
         if( searchList(p->getPID()) ){
-            return NULL;
+            return memptr;
         }
         
         //If the level below can accomodate the process...
@@ -103,18 +109,21 @@ public:
 
             //If left child is not null, recurse left
             if( node->getLeft() != NULL && (node->getLeft()->getAvailable() || node->getLeft()->getIsSplit()) ){
-                getMem(size, node->getLeft(), p);
+                getMem(size, node->getLeft(), p, memptr);
             }
 
             //If right child is not null, recurse right
             if( node->getRight() != NULL && ( node->getRight()->getAvailable() || node->getRight()->getIsSplit() )){
-                getMem(size, node->getRight(), p);
+                getMem(size, node->getRight(), p, memptr);
             }
+            
+            memptr = NULL;
+            return memptr;
 
         } else {
             
             if( !node->getAvailable() )
-                return NULL;
+                return memptr;
             
             //Make segment unavailable. Remove from list?
             node->setAvailable(false);
@@ -122,9 +131,13 @@ public:
             node->setCurrentProcess(p);
             unsigned long long offset = findOffset(node);
             std::cout << "Offset is : " << offset << std::endl;
-            return ((char*)main_block + offset);
+            memptr = (char*)main_block + offset;
+            std::cout << "main : " << main_block << "\tmemptr : " << memptr << " \twhat null is : " << NULL << std::endl;
+            
+            return memptr;
 //            list[node->getLevel()].push_back(node);
         }
+        memptr = NULL;
         return NULL;
     }
     
@@ -136,10 +149,14 @@ public:
             node->setAvailable(true);
             cleanup(node);
             
-            if( readyQueue.front()->getMemory() <= findLargest()->getSize() ){
-                this->my_malloc( readyQueue.front() );
-                readyQueue.pop();
+            if( readyQueue.size() > 0 ){
+                if( readyQueue.front()->getMemory() <= findLargest()->getSize() ){
+                    this->my_malloc( readyQueue.front() );
+                    std::cout << "Removing " << readyQueue.front()->getPID() << " from the readyQueue and starting." << std::endl;
+                    readyQueue.pop();
+                }
             }
+            
             
         } else {
             std::cout << "Process not found in tree." << std::endl;
@@ -223,7 +240,7 @@ public:
     }
     
     BSnode * findLargest(){
-        for(int i = (int)list.size(); i >= 0; i--){
+        for(int i = (int)list.size() - 1; i >= 0; i--){
             for( int j = 0; j < list[i].size(); j++){
                 if( list[i][j]->getAvailable() ){
                     return list[i][j];
