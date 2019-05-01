@@ -130,11 +130,11 @@ void GenerateProcesses(list<Process*> &processes, int num_processes){
     mt19937_64 generator(rd());
     
     //distribution from 10 * 10^4 to 50 * 10^5
-    uniform_int_distribution<long long unsigned> cycle_distribution(100000,5000000);
+    uniform_int_distribution<long long unsigned> cycle_distribution(10000,500000);
 //    uniform_int_distribution<long long unsigned> cycle_distribution(10, 15);
     
     //distribution from ( 1,000 bytes to 160,000 bytes )
-    uniform_int_distribution<long long unsigned> memory_distribution(1000,16000000000);
+    uniform_int_distribution<long long unsigned> memory_distribution(10000,1600000);
     unsigned long long num_cycles, mem_footprint;
     
     //For the numbers of processes to be created
@@ -181,8 +181,9 @@ double systemManager(list<Process*> processes){
                 p->cycle();
                 //Remove finished processes from the "running" list
                 if( p->isFinished() ){
-                    std::cout << p->getPID() << " has finished." << std::endl;
+                    p->setIsRunning(false);
                     
+                    std::cout << p->getPID() << " has finished." << std::endl;
                     //Free the memory of the finished process
                     free( p->getMemPtr() );
                 }

@@ -68,9 +68,9 @@ public:
     
     void my_malloc(Process* p){
         void* memPtr = NULL;
-        memPtr = getMem(p->getMemory(), root, p, &memPtr);
+        getMem(p->getMemory(), root, p, memPtr);
         
-        std::cout << "my_malloc memPtr : " << (void*)memPtr << std::endl;
+        std::cout << "my_malloc memPtr : " << memPtr << std::endl;
         
         if(memPtr == NULL){
             std::cout << "Not enough space for process " << p->getPID() << ". Adding to readyQueue." << std::endl;
@@ -83,11 +83,11 @@ public:
         printList();
     }
     
-    void* getMem(unsigned long long size, BSnode * node, Process * p, void* memptr){
+    void getMem(unsigned long long size, BSnode * node, Process * p, void* &memptr){
         
         //If p has been assigned, stop looking
         if( searchList(p->getPID()) ){
-            return memptr;
+            return;
         }
         
         //If the level below can accomodate the process...
@@ -117,13 +117,13 @@ public:
                 getMem(size, node->getRight(), p, memptr);
             }
             
-            memptr = NULL;
-            return memptr;
+//            memptr = NULL;
+//            return;
 
         } else {
             
             if( !node->getAvailable() )
-                return memptr;
+                return;
             
             //Make segment unavailable. Remove from list?
             node->setAvailable(false);
@@ -134,11 +134,11 @@ public:
             memptr = (char*)main_block + offset;
             std::cout << "main : " << main_block << "\tmemptr : " << memptr << " \twhat null is : " << NULL << std::endl;
             
-            return memptr;
+            return;
 //            list[node->getLevel()].push_back(node);
         }
-        memptr = NULL;
-        return NULL;
+//        memptr = NULL;
+//        return;
     }
     
      void my_free(Process* p){

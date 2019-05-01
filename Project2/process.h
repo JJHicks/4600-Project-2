@@ -38,6 +38,7 @@ public:
         cycles_remaining = c;
         mem_footprint = f;
         finished = false;
+        isRunning = false;
         
     }
     //Copy constructor
@@ -47,6 +48,7 @@ public:
         mem_footprint= p2.mem_footprint;
         cycles_remaining = p2.cycles_remaining;
         finished = p2.finished;
+        isRunning = p2.isRunning;
     }
     
     //functions to return private variables
